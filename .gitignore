@@ -1,0 +1,13 @@
+.qtcreator/
+*.pro.user
+*.pro.user.*
+
+build*/
+*.o
+*.obj
+*.exe
+*.Debug
+*.Release
+Makefile*
+
+.qmake.stash
