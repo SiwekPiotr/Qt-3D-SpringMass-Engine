@@ -40,13 +40,14 @@ Prosty silnik fizyczny 3D napisany w C++ z użyciem Qt oraz OpenGL. Projekt symu
 ## Jak uruchomić?
 
 ### W Qt Creatorze:
-1. Otwórz plik `Qt-3D-SpringMass-Engine.pro` w **Qt Creator**.
-2. Wybierz swój kompilator (Desktop GCC / MSVC / MinGW z obsługą OpenGL).
+1. Otwórz plik `CMakeLists.txt` w **Qt Creator**.
+2. Wybierz swój zestaw kompilatorów (Kit, np. Desktop Qt 6.x).
 3. Kliknij **Run** (lub wciśnij `Ctrl + R`).
 
-### Z terminala (qmake):
+### Z terminala (CMake):
 ```bash
-qmake Qt-3D-SpringMass-Engine.pro
+mkdir build && cd build
+cmake ..
 make
 ./Qt-3D-SpringMass-Engine
 ```

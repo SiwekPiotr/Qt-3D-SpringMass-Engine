@@ -1,8 +1,11 @@
 .qtcreator/
-*.pro.user
-*.pro.user.*
+CMakeLists.txt.user
 
 build*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
 *.o
 *.obj
 *.exe

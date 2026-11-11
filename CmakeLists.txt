@@ -1,0 +1,44 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(Qt-3D-SpringMass-Engine CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGL OpenGLWidgets)
+find_package(OpenGL REQUIRED)
+
+set(SOURCES
+    main.cpp
+    mainwindow.cpp
+    physicsengine3d.cpp
+    springmasssystem3d.cpp
+)
+
+set(HEADERS
+    mainwindow.h
+    physicsengine3d.h
+    springmasssystem3d.h
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Widgets
+    Qt6::OpenGL
+    Qt6::OpenGLWidgets
+    OpenGL::GL
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
+)
+
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:/02>)
+else()
+    target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:-02>)
+endif()
