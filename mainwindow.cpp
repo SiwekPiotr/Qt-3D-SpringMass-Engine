@@ -6,27 +6,41 @@
 #include <QSlider>
 #include <QLabel>
 #include <QGroupBox>
+#include <QGridLayout>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     physicsEngine(new PhysicsEngine3D(this)),
     simulationTimer(new QTimer(this))
 {
     QWidget *centralWidget = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QGridLayout *mainLayout = new QGridLayout(centralWidget);
+
+    mainLayout->addWidget(physicsEngine, 0, 0);
+
+    QWidget *leftPanel = new QWidget(this);
+    leftPanel->setObjectName("leftPanel");
+    QVBoxLayout *leftPanelLayout = new QVBoxLayout(leftPanel);
+
+    QGroupBox *modeGroup = new QGroupBox("Simulation Control", leftPanel);
+    QVBoxLayout *modeLayout = new QVBoxLayout(modeGroup);
 
     QPushButton *resetButton = new QPushButton("Reset System (R)", this);
     QPushButton *cubeModeButton = new QPushButton("Cube Mode", this);
     QPushButton *clothModeButton = new QPushButton("Cloth Mode", this);
 
-    buttonLayout->addWidget(resetButton);
-    buttonLayout->addWidget(cubeModeButton);
-    buttonLayout->addWidget(clothModeButton);
-    buttonLayout->addStretch();
+    modeLayout->addWidget(resetButton);
+    modeLayout->addWidget(cubeModeButton);
+    modeLayout->addWidget(clothModeButton);
 
-    mainLayout->addLayout(buttonLayout);
-    mainLayout->addWidget(createSpringControls());
-    mainLayout->addWidget(physicsEngine);
+    leftPanelLayout->addWidget(modeGroup);
+    leftPanelLayout->addWidget(createSpringControls());
+
+    QWidget *overlayContainer = new QWidget(this);
+    QVBoxLayout *containerLayout = new QVBoxLayout(overlayContainer);
+    containerLayout->addWidget(leftPanel);
+
+    mainLayout->addWidget(overlayContainer, 0, 0, Qt::AlignTop | Qt::AlignLeft);
+    leftPanel->raise();
 
     setCentralWidget(centralWidget);
 
@@ -63,14 +77,18 @@ void MainWindow::updateSimulation(){
 
 QHBoxLayout* MainWindow::createSliderRow(const QString& title, QSlider*& slider, QLabel*& valueLabel, int min, int max, int defaultVal){
     QHBoxLayout *rowLayout = new QHBoxLayout();
+    rowLayout->setSpacing(8);
+
     QLabel *titleLabel = new QLabel(title, this);
+    titleLabel->setMinimumWidth(85);
+
     valueLabel = new QLabel(QString::number(defaultVal), this);
-    valueLabel->setMinimumWidth(60);
+    valueLabel->setMinimumWidth(45);
+    valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     slider = new QSlider(Qt::Horizontal, this);
     slider->setRange(min, max);
     slider->setValue(defaultVal);
-    slider->setTickPosition(QSlider::TicksBelow);
 
     rowLayout->addWidget(titleLabel);
     rowLayout->addWidget(slider);
@@ -79,16 +97,15 @@ QHBoxLayout* MainWindow::createSliderRow(const QString& title, QSlider*& slider,
 }
 
 QGroupBox* MainWindow::createSpringControls(){
-    QGroupBox *groupBox = new QGroupBox("Spring Parameters (Real-time Control)", this);
-    QVBoxLayout *layout = new QVBoxLayout();
+    QGroupBox *groupBox = new QGroupBox("Spring Parameters", this);
+    QVBoxLayout *layout = new QVBoxLayout(groupBox);
+    layout->setSpacing(10);
+    layout->setContentsMargins(10, 14, 10, 10);
 
     layout->addLayout(createSliderRow("Stiffness:", stiffnessSlider, stiffnessValueLabel, 100, 1000, 600));
     layout->addLayout(createSliderRow("Damping:", dampingSlider, dampingValueLabel, 1, 20, 8));
     layout->addLayout(createSliderRow("Rest Length:", restLengthSlider, restLengthValueLabel, 10, 100, 30));
     layout->addLayout(createSliderRow("Points per side:", pointsSlider, pointsValueLabel, 4, 15, 4));
-
-    groupBox->setLayout(layout);
-    groupBox->setMaximumHeight(150);
 
     connect(stiffnessSlider, &QSlider::valueChanged, this, &MainWindow::updateStiffness);
     connect(dampingSlider, &QSlider::valueChanged, this, &MainWindow::updateDamping);

@@ -24,6 +24,12 @@ set(HEADERS
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
+qt_add_resources(${PROJECT_NAME} "app_resources"
+    PREFIX "/"
+    FILES
+        style.qss
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Gui
