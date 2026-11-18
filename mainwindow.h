@@ -9,6 +9,8 @@
 class QLabel;
 class QSlider;
 class QGroupBox;
+class QDoubleSpinBox;
+class QSpinBox;
 
 class MainWindow : public QMainWindow
 {
@@ -20,11 +22,18 @@ public:
 
 private slots:
     void updateSimulation();
-    void updateStiffness(int value);
-    void updateDamping(int value);
-    void updateRestLength(int value);
+
+    void updateStiffnessFromSlider(int value);
+    void updateDampingFromSlider(int value);
+    void updateRestLengthFromSlider(int value);
+    void updatePointsFromSlider(int value);
+
+    void updateStiffnessFromSpinBox(double value);
+    void updateDampingFromSpinBox(double value);
+    void updateRestLengthFromSpinBox(double value);
+    void updatePointsFromSpinBox(int value);
+
     void updateParameterValues();
-    void updatePointsPerSide(int value);
     void switchMode(bool cloth);
 
 private:
@@ -36,12 +45,13 @@ private:
     QSlider* restLengthSlider;
     QSlider* pointsSlider;
 
-    QLabel* stiffnessValueLabel;
-    QLabel* dampingValueLabel;
-    QLabel* restLengthValueLabel;
-    QLabel* pointsValueLabel;
+    QDoubleSpinBox* stiffnessSpinBox;
+    QDoubleSpinBox* dampingSpinBox;
+    QDoubleSpinBox* restLengthSpinBox;
+    QSpinBox* pointsSpinBox;
 
     QGroupBox* createSpringControls();
-    QHBoxLayout* createSliderRow(const QString& title, QSlider*& slider, QLabel*& valueLabel, int min, int max, int defaultVal);
+    QHBoxLayout* createIntSpinBoxRow(const QString& title, QSlider*& slider, QSpinBox*& spinBox, int min, int max, int defaultVal);
+    QHBoxLayout* createDoubleSpinBoxRow(const QString& title, QSlider*& slider, QDoubleSpinBox*& spinBox, double min, double max, double defaultVal, double step, int decimals);
 };
 #endif

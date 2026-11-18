@@ -7,6 +7,10 @@
 #include <QLabel>
 #include <QGroupBox>
 #include <QGridLayout>
+#include <QDoubleSpinBox>
+#include <QSpinBox>
+#include <QSignalBlocker>
+#include <cmath>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     physicsEngine(new PhysicsEngine3D(this)),
@@ -70,21 +74,22 @@ void MainWindow::switchMode(bool cloth){
     updateParameterValues();
 }
 
-
 void MainWindow::updateSimulation(){
     physicsEngine->updateSimulation(0.016f);
 }
 
-QHBoxLayout* MainWindow::createSliderRow(const QString& title, QSlider*& slider, QLabel*& valueLabel, int min, int max, int defaultVal){
+QHBoxLayout* MainWindow::createIntSpinBoxRow(const QString& title, QSlider*& slider, QSpinBox*& spinBox, int min, int max, int defaultVal){
     QHBoxLayout *rowLayout = new QHBoxLayout();
     rowLayout->setSpacing(8);
 
     QLabel *titleLabel = new QLabel(title, this);
     titleLabel->setMinimumWidth(85);
 
-    valueLabel = new QLabel(QString::number(defaultVal), this);
-    valueLabel->setMinimumWidth(45);
-    valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    spinBox = new QSpinBox(this);
+    spinBox->setRange(min, max);
+    spinBox->setValue(defaultVal);
+    spinBox->setFixedWidth(65);
+    spinBox->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     slider = new QSlider(Qt::Horizontal, this);
     slider->setRange(min, max);
@@ -92,7 +97,33 @@ QHBoxLayout* MainWindow::createSliderRow(const QString& title, QSlider*& slider,
 
     rowLayout->addWidget(titleLabel);
     rowLayout->addWidget(slider);
-    rowLayout->addWidget(valueLabel);
+    rowLayout->addWidget(spinBox);
+    return rowLayout;
+}
+
+QHBoxLayout* MainWindow::createDoubleSpinBoxRow(const QString& title, QSlider*& slider, QDoubleSpinBox*& spinBox, double min, double max, double defaultVal, double step, int decimals){
+    QHBoxLayout *rowLayout = new QHBoxLayout();
+    rowLayout->setSpacing(8);
+
+    QLabel *titleLabel = new QLabel(title, this);
+    titleLabel->setMinimumWidth(85);
+
+    spinBox = new QDoubleSpinBox(this);
+    spinBox->setRange(min, max);
+    spinBox->setValue(defaultVal);
+    spinBox->setSingleStep(step);
+    spinBox->setDecimals(decimals);
+    spinBox->setFixedWidth(65);
+    spinBox->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    slider = new QSlider(Qt::Horizontal, this);
+    double factor = std::pow(10.0, decimals);
+    slider->setRange(static_cast<int>(std::round(min * factor)), static_cast<int>(std::round(max * factor)));
+    slider->setValue(static_cast<int>(std::round(defaultVal * factor)));
+
+    rowLayout->addWidget(titleLabel);
+    rowLayout->addWidget(slider);
+    rowLayout->addWidget(spinBox);
     return rowLayout;
 }
 
@@ -102,46 +133,81 @@ QGroupBox* MainWindow::createSpringControls(){
     layout->setSpacing(10);
     layout->setContentsMargins(10, 14, 10, 10);
 
-    layout->addLayout(createSliderRow("Stiffness:", stiffnessSlider, stiffnessValueLabel, 100, 1000, 600));
-    layout->addLayout(createSliderRow("Damping:", dampingSlider, dampingValueLabel, 1, 20, 8));
-    layout->addLayout(createSliderRow("Rest Length:", restLengthSlider, restLengthValueLabel, 10, 100, 30));
-    layout->addLayout(createSliderRow("Points per side:", pointsSlider, pointsValueLabel, 4, 15, 4));
+    layout->addLayout(createDoubleSpinBoxRow("Stiffness:", stiffnessSlider, stiffnessSpinBox, 100, 1000, 600, 10, 1));
+    layout->addLayout(createDoubleSpinBoxRow("Damping:", dampingSlider, dampingSpinBox, 1, 20, 8, 0.5, 1));
+    layout->addLayout(createDoubleSpinBoxRow("Rest Length:", restLengthSlider, restLengthSpinBox, 1, 10, 3, 0.1, 2));
+    layout->addLayout(createIntSpinBoxRow("Points per side:", pointsSlider, pointsSpinBox, 4, 15, 4));
 
-    connect(stiffnessSlider, &QSlider::valueChanged, this, &MainWindow::updateStiffness);
-    connect(dampingSlider, &QSlider::valueChanged, this, &MainWindow::updateDamping);
-    connect(restLengthSlider, &QSlider::valueChanged, this, &MainWindow::updateRestLength);
-    connect(pointsSlider, &QSlider::valueChanged, this, &MainWindow::updatePointsPerSide);
+    connect(stiffnessSlider, &QSlider::valueChanged, this, &MainWindow::updateStiffnessFromSlider);
+    connect(dampingSlider, &QSlider::valueChanged, this, &MainWindow::updateDampingFromSlider);
+    connect(restLengthSlider, &QSlider::valueChanged, this, &MainWindow::updateRestLengthFromSlider);
+    connect(pointsSlider, &QSlider::valueChanged, this, &MainWindow::updatePointsFromSlider);
+
+    connect(stiffnessSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateStiffnessFromSpinBox);
+    connect(dampingSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateDampingFromSpinBox);
+    connect(restLengthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateRestLengthFromSpinBox);
+    connect(pointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::updatePointsFromSpinBox);
 
     return groupBox;
 }
 
-void MainWindow::updateStiffness(int value){
+void MainWindow::updateStiffnessFromSlider(int value){
+    float stiffness = static_cast<float>(value) / 10.0f;
+    physicsEngine->setSpringStiffness(stiffness);
+    QSignalBlocker blocker(stiffnessSpinBox);
+    stiffnessSpinBox->setValue(stiffness);
+}
+
+void MainWindow::updateDampingFromSlider(int value){
+    float damping = static_cast<float>(value) / 10.0f;
+    physicsEngine->setSpringDamping(damping);
+    QSignalBlocker blocker(dampingSpinBox);
+    dampingSpinBox->setValue(damping);
+}
+
+void MainWindow::updateRestLengthFromSlider(int value){
+    float restLength = static_cast<float>(value) / 100.0f;
+    physicsEngine->setSpringRestLength(restLength);
+    QSignalBlocker blocker(restLengthSpinBox);
+    restLengthSpinBox->setValue(restLength);
+}
+
+void MainWindow::updatePointsFromSlider(int value){
+    physicsEngine->setPointsPerSide(value);
+    QSignalBlocker blocker(pointsSpinBox);
+    pointsSpinBox->setValue(value);
+}
+
+void MainWindow::updateStiffnessFromSpinBox(double value){
     float stiffness = static_cast<float>(value);
     physicsEngine->setSpringStiffness(stiffness);
-    stiffnessValueLabel->setText(QString::number(stiffness, 'f', 1));
+    QSignalBlocker blocker(stiffnessSlider);
+    stiffnessSlider->setValue(static_cast<int>(std::round(value * 10.0)));
 }
 
-void MainWindow::updateDamping(int value){
+void MainWindow::updateDampingFromSpinBox(double value){
     float damping = static_cast<float>(value);
     physicsEngine->setSpringDamping(damping);
-    dampingValueLabel->setText(QString::number(damping, 'f', 1));
+    QSignalBlocker blocker(dampingSlider);
+    dampingSlider->setValue(static_cast<int>(std::round(value * 10.0)));
 }
 
-void MainWindow::updateRestLength(int value){
-    float restLength = static_cast<float>(value) / 10.0f;
+void MainWindow::updateRestLengthFromSpinBox(double value){
+    float restLength = static_cast<float>(value);
     physicsEngine->setSpringRestLength(restLength);
-    restLengthValueLabel->setText(QString::number(restLength, 'f', 2));
+    QSignalBlocker blocker(restLengthSlider);
+    restLengthSlider->setValue(static_cast<int>(std::round(value * 100.0)));
 }
 
-void MainWindow::updatePointsPerSide(int value){
+void MainWindow::updatePointsFromSpinBox(int value){
     physicsEngine->setPointsPerSide(value);
-    pointsValueLabel->setText(QString::number(value));
+    QSignalBlocker blocker(pointsSlider);
+    pointsSlider->setValue(value);
 }
 
 void MainWindow::updateParameterValues(){
-    updateStiffness(stiffnessSlider->value());
-    updateDamping(dampingSlider->value());
-    updateRestLength(restLengthSlider->value());
-    updatePointsPerSide(pointsSlider->value());
+    updateStiffnessFromSpinBox(stiffnessSpinBox->value());
+    updateDampingFromSpinBox(dampingSpinBox->value());
+    updateRestLengthFromSpinBox(restLengthSpinBox->value());
+    updatePointsFromSpinBox(pointsSpinBox->value());
 }
-

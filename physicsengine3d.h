@@ -79,7 +79,7 @@ private:
 
     void updateSpringParameters();
 
-    bool clothMode;
+    bool clothMode = false;
 
     void createClothSprings(int widthPoints, int heightPoints, float spacing);
 };
