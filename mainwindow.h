@@ -26,11 +26,13 @@ private slots:
     void updateStiffnessFromSlider(int value);
     void updateDampingFromSlider(int value);
     void updateRestLengthFromSlider(int value);
+    void updateTimeStepFromSlider(int value);
     void updatePointsFromSlider(int value);
 
     void updateStiffnessFromSpinBox(double value);
     void updateDampingFromSpinBox(double value);
     void updateRestLengthFromSpinBox(double value);
+    void updateTimeStepFromSpinBox(double value);
     void updatePointsFromSpinBox(int value);
 
     void updateParameterValues();
@@ -40,14 +42,18 @@ private:
     PhysicsEngine3D* physicsEngine;
     QTimer* simulationTimer;
 
+    float timeStep;
+
     QSlider* stiffnessSlider;
     QSlider* dampingSlider;
     QSlider* restLengthSlider;
+    QSlider* timeStepSlider;
     QSlider* pointsSlider;
 
     QDoubleSpinBox* stiffnessSpinBox;
     QDoubleSpinBox* dampingSpinBox;
     QDoubleSpinBox* restLengthSpinBox;
+    QDoubleSpinBox* timeStepSpinBox;
     QSpinBox* pointsSpinBox;
 
     QGroupBox* createSpringControls();
