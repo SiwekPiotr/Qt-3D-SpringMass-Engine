@@ -27,12 +27,14 @@ private slots:
     void updateDampingFromSlider(int value);
     void updateRestLengthFromSlider(int value);
     void updateTimeStepFromSlider(int value);
+    void updatePointMassFromSlider(int value);
     void updatePointsFromSlider(int value);
 
     void updateStiffnessFromSpinBox(double value);
     void updateDampingFromSpinBox(double value);
     void updateRestLengthFromSpinBox(double value);
     void updateTimeStepFromSpinBox(double value);
+    void updatePointMassFromSpinBox(double value);
     void updatePointsFromSpinBox(int value);
 
     void updateParameterValues();
@@ -48,12 +50,14 @@ private:
     QSlider* dampingSlider;
     QSlider* restLengthSlider;
     QSlider* timeStepSlider;
+    QSlider* pointMassSlider;
     QSlider* pointsSlider;
 
     QDoubleSpinBox* stiffnessSpinBox;
     QDoubleSpinBox* dampingSpinBox;
     QDoubleSpinBox* restLengthSpinBox;
     QDoubleSpinBox* timeStepSpinBox;
+    QDoubleSpinBox* pointMassSpinBox;
     QSpinBox* pointsSpinBox;
 
     QGroupBox* createSpringControls();

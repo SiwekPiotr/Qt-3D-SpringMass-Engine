@@ -32,6 +32,7 @@ public slots:
     void setSpringStiffness(float stiffness);
     void setSpringDamping(float damping);
     void setSpringRestLength(float restLength);
+    void setPointMass(float mass);
     void setPointsPerSide(int count);
 
 protected:
@@ -75,6 +76,7 @@ private:
     float currentStiffness;
     float currentDamping;
     float currentRestLength;
+    float currentPointMass;
     int currentPointsPerSide;
 
     void updateSpringParameters();

@@ -14,6 +14,7 @@ PhysicsEngine3D::PhysicsEngine3D(QWidget *parent) : QOpenGLWidget(parent),
     currentStiffness(600.0f),
     currentDamping(8.0f),
     currentRestLength(0.3f),
+    currentPointMass(1.0f),
     currentPointsPerSide(4)
 {
     setFocusPolicy(Qt::StrongFocus);
@@ -201,7 +202,7 @@ void PhysicsEngine3D::createCubeGrid(int pointsPerSide, float spacing){
                     (y - (pointsPerSide-1)/2.0f) * spacing + 3.0f,
                     (z - (pointsPerSide-1)/2.0f) * spacing
                     );
-                float mass = 1.0f;
+                float mass = currentPointMass;
                 bool fixed = false;
 
                 system.addPointMass(PointMass3D(position, mass, fixed));
@@ -291,11 +292,6 @@ void PhysicsEngine3D::createCubeGrid(int pointsPerSide, float spacing){
             }
         }
     }
-}
-
-void PhysicsEngine3D::setPointsPerSide(int count){
-    currentPointsPerSide = count;
-    resetSystem();
 }
 
 void PhysicsEngine3D::resetSystem(){
@@ -525,6 +521,21 @@ void PhysicsEngine3D::setSpringRestLength(float restLength){
     resetSystem();
 }
 
+void PhysicsEngine3D::setPointMass(float mass){
+    if(mass <= 0.0f) mass = 0.1f;
+    currentPointMass = mass;
+    auto& points = system.getPoints();
+    for(auto& point : points){
+        point.mass = currentPointMass;
+    }
+    update();
+}
+
+void PhysicsEngine3D::setPointsPerSide(int count){
+    currentPointsPerSide = count;
+    resetSystem();
+}
+
 void PhysicsEngine3D::updateSpringParameters(){
     auto& springs = system.getSprings();
 
@@ -566,7 +577,7 @@ void PhysicsEngine3D::createCloth(int widthPoints, int heightPoints, float spaci
                 (0 - (heightPoints-1)/2.0f) * spacing * 0.5f
                 );
 
-            float mass = 1.0f;
+            float mass = currentPointMass;
             bool fixed = false;
 
             if(y == 0){

@@ -110,10 +110,10 @@ QHBoxLayout* MainWindow::createDoubleSpinBoxRow(const QString& title, QSlider*& 
     titleLabel->setMinimumWidth(85);
 
     spinBox = new QDoubleSpinBox(this);
+    spinBox->setDecimals(decimals);
     spinBox->setRange(min, max);
     spinBox->setValue(defaultVal);
     spinBox->setSingleStep(step);
-    spinBox->setDecimals(decimals);
     spinBox->setFixedWidth(65);
     spinBox->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
@@ -138,18 +138,21 @@ QGroupBox* MainWindow::createSpringControls(){
     layout->addLayout(createDoubleSpinBoxRow("Damping:", dampingSlider, dampingSpinBox, 1, 20, 8, 0.5, 1));
     layout->addLayout(createDoubleSpinBoxRow("Rest Length:", restLengthSlider, restLengthSpinBox, 1, 10, 3, 0.1, 2));
     layout->addLayout(createDoubleSpinBoxRow("Time Step (dt):", timeStepSlider, timeStepSpinBox, 0.001, 0.033, 0.016, 0.001, 3));
+    layout->addLayout(createDoubleSpinBoxRow("Point Mass (m):", pointMassSlider, pointMassSpinBox, 0.1, 10.0, 1.0, 0.1, 1));
     layout->addLayout(createIntSpinBoxRow("Points per side:", pointsSlider, pointsSpinBox, 4, 15, 4));
 
     connect(stiffnessSlider, &QSlider::valueChanged, this, &MainWindow::updateStiffnessFromSlider);
     connect(dampingSlider, &QSlider::valueChanged, this, &MainWindow::updateDampingFromSlider);
     connect(restLengthSlider, &QSlider::valueChanged, this, &MainWindow::updateRestLengthFromSlider);
     connect(timeStepSlider, &QSlider::valueChanged, this, &MainWindow::updateTimeStepFromSlider);
+    connect(pointMassSlider, &QSlider::valueChanged, this, &MainWindow::updatePointMassFromSlider);
     connect(pointsSlider, &QSlider::valueChanged, this, &MainWindow::updatePointsFromSlider);
 
     connect(stiffnessSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateStiffnessFromSpinBox);
     connect(dampingSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateDampingFromSpinBox);
     connect(restLengthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateRestLengthFromSpinBox);
     connect(timeStepSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updateTimeStepFromSpinBox);
+    connect(pointMassSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &MainWindow::updatePointMassFromSpinBox);
     connect(pointsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged), this, &MainWindow::updatePointsFromSpinBox);
 
     return groupBox;
@@ -180,6 +183,13 @@ void MainWindow::updateTimeStepFromSlider(int value){
     timeStep = static_cast<float>(value) / 1000.0f;
     QSignalBlocker blocker(timeStepSpinBox);
     timeStepSpinBox->setValue(timeStep);
+}
+
+void MainWindow::updatePointMassFromSlider(int value){
+    float mass = static_cast<float>(value) / 10.0f;
+    physicsEngine->setPointMass(mass);
+    QSignalBlocker blocker(pointMassSpinBox);
+    pointMassSpinBox->setValue(mass);
 }
 
 void MainWindow::updatePointsFromSlider(int value){
@@ -215,6 +225,13 @@ void MainWindow::updateTimeStepFromSpinBox(double value){
     timeStepSlider->setValue(static_cast<int>(std::round(value * 1000.0)));
 }
 
+void MainWindow::updatePointMassFromSpinBox(double value){
+    float mass = static_cast<float>(value);
+    physicsEngine->setPointMass(mass);
+    QSignalBlocker blocker(pointMassSlider);
+    pointMassSlider->setValue(static_cast<int>(std::round(value * 10.0)));
+}
+
 void MainWindow::updatePointsFromSpinBox(int value){
     physicsEngine->setPointsPerSide(value);
     QSignalBlocker blocker(pointsSlider);
@@ -225,5 +242,7 @@ void MainWindow::updateParameterValues(){
     updateStiffnessFromSpinBox(stiffnessSpinBox->value());
     updateDampingFromSpinBox(dampingSpinBox->value());
     updateRestLengthFromSpinBox(restLengthSpinBox->value());
+    updateTimeStepFromSpinBox(timeStepSpinBox->value());
+    updatePointMassFromSpinBox(pointMassSpinBox->value());
     updatePointsFromSpinBox(pointsSpinBox->value());
 }
