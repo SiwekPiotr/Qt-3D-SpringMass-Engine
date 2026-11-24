@@ -410,7 +410,15 @@ void PhysicsEngine3D::mouseMoveEvent(QMouseEvent *event){
         QQuaternion rotX = QQuaternion::fromAxisAndAngle(QVector3D(0, 1, 0), -delta.x() * sensitivity);
         QQuaternion rotY = QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), -delta.y() * sensitivity);
 
-        cameraRotation = rotX * rotY * cameraRotation;
+        QQuaternion proposedRotation = rotX * rotY * cameraRotation;
+        QVector3D proposedCamPos = proposedRotation.rotatedVector(QVector3D(0, 0, cameraDistance));
+
+        if(proposedCamPos.y() >= groundLevel + 0.2f){
+            cameraRotation = proposedRotation;
+        } else{
+            cameraRotation = rotX * cameraRotation;
+        }
+
         update();
     }
 
